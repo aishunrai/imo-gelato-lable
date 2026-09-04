@@ -56,7 +56,7 @@
   <h1>Smooth Print テスト</h1>
 
   <p>
-    test62.lbx を使用して、QL-820NWBからテスト印刷します_2。
+    test62.lbx を使用して、QL-820NWBからテスト印刷します_3。
   </p>
 
   <button type="button" onclick="printTest()">
@@ -70,17 +70,13 @@
 <script>
 
 function printTest() {
-
   const message = document.getElementById("message");
 
   const smoothPrintUrl =
     "brotherwebprint://print"
     + "?filename=" + encodeURIComponent("test62.lbx")
-    + "&copies=1"
-    + "&paperType=dieCut"
-    + "&tapeWidth=62"
-    + "&tapeLength=29"
-    + "&unit=mm";
+    + "&size=" + encodeURIComponent("DieCutW62H29")
+    + "&copies=1";
 
   message.textContent = "Smooth Printを起動します...";
 
