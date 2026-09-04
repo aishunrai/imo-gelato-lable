@@ -3,43 +3,199 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smooth Print テスト</title>
+
+  <title>ジェラートラベル印刷</title>
 
   <style>
     body {
       font-family: sans-serif;
-      padding: 30px;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      background: #ffffff;
     }
 
     button {
       width: 100%;
-      padding: 18px;
+      padding: 16px;
       font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 16px;
+      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Smooth Print テスト</h2>
+<div class="container">
 
-<p>62mm無定長ロールでテスト印刷します。</p>
+  <h1>ジェラートラベル印刷</h1>
 
-<button type="button" onclick="printTest()">
-  テスト印刷
-</button>
+  <div class="field">
+    <label for="flavor">フレーバー</label>
+
+    <select id="flavor">
+      <option value="">読み込み中...</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="staff">担当者</label>
+
+    <input
+      type="text"
+      id="staff"
+      placeholder="氏名を入力"
+      autocomplete="name"
+    >
+  </div>
+
+  <button type="button" onclick="printLabel()">
+    印刷
+  </button>
+
+  <div id="message" class="message"></div>
+
+</div>
 
 <script>
-function printTest() {
+
+async function loadFlavors() {
+
+  const select = document.getElementById("flavor");
+
+  try {
+
+    const response = await fetch("flavor.json");
+
+    if (!response.ok) {
+      throw new Error("flavor.json を読み込めませんでした");
+    }
+
+    const flavors = await response.json();
+
+    select.innerHTML = "";
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "選択してください";
+
+    select.appendChild(defaultOption);
+
+    flavors.forEach(function(flavor) {
+
+      const option = document.createElement("option");
+
+      option.value = flavor;
+      option.textContent = flavor;
+
+      select.appendChild(option);
+    });
+
+  } catch (error) {
+
+    select.innerHTML =
+      '<option value="">読み込みエラー</option>';
+
+    document.getElementById("message").textContent =
+      "フレーバーマスタの読み込みに失敗しました。";
+
+    console.error(error);
+  }
+}
+
+
+function printLabel() {
+
+  const flavor =
+    document.getElementById("flavor").value;
+
+  const staff =
+    document.getElementById("staff").value.trim();
+
+  const message =
+    document.getElementById("message");
+
+
+  if (!flavor) {
+
+    message.textContent =
+      "フレーバーを選択してください。";
+
+    return;
+  }
+
+
+  if (!staff) {
+
+    message.textContent =
+      "担当者名を入力してください。";
+
+    return;
+  }
+
 
   const smoothPrintUrl =
     "brotherwebprint://print"
-    + "?filename=" + encodeURIComponent("test.lbx")
+    + "?filename=" + encodeURIComponent("gelato-label.lbx")
     + "&size=" + encodeURIComponent("RollW62RB")
-    + "&copies=1";
+    + "&copies=1"
+    + "&text_FLAVOR=" + encodeURIComponent(flavor)
+    + "&text_STAFF=" + encodeURIComponent(staff);
+
+
+  message.textContent =
+    "Smooth Printを起動します...";
+
 
   window.location.href = smoothPrintUrl;
 }
+
+
+loadFlavors();
+
 </script>
 
 </body>
