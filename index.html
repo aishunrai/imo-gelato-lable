@@ -69,134 +69,232 @@
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <h1>ジェラートラベル印刷</h1>
+    <h1>ジェラートラベル印刷</h1>
 
-  <div class="field">
-    <label for="flavor">フレーバー</label>
+    <!-- フレーバー -->
+    <div class="field">
+      <label for="flavor">フレーバー</label>
 
-    <select id="flavor">
-      <option value="">読み込み中...</option>
-    </select>
+      <select id="flavor">
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+
+    <!-- 担当者 -->
+    <div class="field">
+      <label for="staff">担当者</label>
+
+      <input
+        type="text"
+        id="staff"
+        placeholder="氏名を入力"
+        autocomplete="name"
+      >
+    </div>
+
+    <!-- 印刷枚数 -->
+    <div class="field">
+      <label for="copies">印刷枚数</label>
+
+      <input
+        type="number"
+        id="copies"
+        value="1"
+        min="1"
+        max="300"
+        step="1"
+        inputmode="numeric"
+      >
+    </div>
+
+    <!-- 印刷ボタン -->
+    <button type="button" onclick="printLabel()">
+      印刷
+    </button>
+
+    <div id="message" class="message"></div>
+
   </div>
 
-  <div class="field">
-    <label for="staff">担当者</label>
 
-    <input
-      type="text"
-      id="staff"
-      placeholder="氏名を入力"
-      autocomplete="name"
-    >
-  </div>
+  <script>
 
-  <button type="button" onclick="printLabel()">
-    印刷
-  </button>
+    /*
+     * flavor.json から
+     * フレーバー一覧を読み込む
+     */
+    async function loadFlavors() {
 
-  <div id="message" class="message"></div>
+      const select =
+        document.getElementById("flavor");
 
-</div>
+      const message =
+        document.getElementById("message");
 
-<script>
+      try {
 
-async function loadFlavors() {
+        const response =
+          await fetch("flavor.json");
 
-  const select = document.getElementById("flavor");
+        if (!response.ok) {
+          throw new Error(
+            "flavor.json を読み込めませんでした"
+          );
+        }
 
-  try {
+        const flavors =
+          await response.json();
 
-    const response = await fetch("flavor.json");
+        select.innerHTML = "";
 
-    if (!response.ok) {
-      throw new Error("flavor.json を読み込めませんでした");
+        const defaultOption =
+          document.createElement("option");
+
+        defaultOption.value = "";
+        defaultOption.textContent =
+          "選択してください";
+
+        select.appendChild(defaultOption);
+
+
+        flavors.forEach(function(flavor) {
+
+          const option =
+            document.createElement("option");
+
+          option.value = flavor;
+          option.textContent = flavor;
+
+          select.appendChild(option);
+
+        });
+
+      } catch (error) {
+
+        select.innerHTML =
+          '<option value="">読み込みエラー</option>';
+
+        message.textContent =
+          "フレーバー一覧の読み込みに失敗しました。";
+
+        console.error(error);
+      }
     }
 
-    const flavors = await response.json();
 
-    select.innerHTML = "";
+    /*
+     * Smooth Printでラベル印刷
+     */
+    function printLabel() {
 
-    const defaultOption = document.createElement("option");
-    defaultOption.value = "";
-    defaultOption.textContent = "選択してください";
+      const flavor =
+        document.getElementById("flavor").value;
 
-    select.appendChild(defaultOption);
+      const staff =
+        document.getElementById("staff").value.trim();
 
-    flavors.forEach(function(flavor) {
+      const copies =
+        parseInt(
+          document.getElementById("copies").value,
+          10
+        );
 
-      const option = document.createElement("option");
-
-      option.value = flavor;
-      option.textContent = flavor;
-
-      select.appendChild(option);
-    });
-
-  } catch (error) {
-
-    select.innerHTML =
-      '<option value="">読み込みエラー</option>';
-
-    document.getElementById("message").textContent =
-      "フレーバーマスタの読み込みに失敗しました。";
-
-    console.error(error);
-  }
-}
+      const message =
+        document.getElementById("message");
 
 
-function printLabel() {
+      /*
+       * 入力チェック
+       */
 
-  const flavor =
-    document.getElementById("flavor").value;
+      if (!flavor) {
 
-  const staff =
-    document.getElementById("staff").value.trim();
+        message.textContent =
+          "フレーバーを選択してください。";
 
-  const message =
-    document.getElementById("message");
-
-
-  if (!flavor) {
-
-    message.textContent =
-      "フレーバーを選択してください。";
-
-    return;
-  }
+        return;
+      }
 
 
-  if (!staff) {
+      if (!staff) {
 
-    message.textContent =
-      "担当者名を入力してください。";
+        message.textContent =
+          "担当者名を入力してください。";
 
-    return;
-  }
-
-
-  const smoothPrintUrl =
-    "brotherwebprint://print"
-    + "?filename=" + encodeURIComponent("gelato-label.lbx")
-    + "&size=" + encodeURIComponent("RollW62RB")
-    + "&copies=1"
-    + "&text_FLAVOR=" + encodeURIComponent(flavor)
-    + "&text_STAFF=" + encodeURIComponent(staff);
+        return;
+      }
 
 
-  message.textContent =
-    "Smooth Printを起動します...";
+      if (
+        Number.isNaN(copies) ||
+        copies < 1
+      ) {
+
+        message.textContent =
+          "印刷枚数は1以上で入力してください。";
+
+        return;
+      }
 
 
-  window.location.href = smoothPrintUrl;
-}
+      if (copies > 50) {
+
+        message.textContent =
+          "印刷枚数は50枚以下で入力してください。";
+
+        return;
+      }
 
 
-loadFlavors();
+      /*
+       * Smooth Print URL
+       *
+       * gelato-label.lbx は
+       * 各スマホのSmooth Printへ
+       * 事前に共有しておく
+       *
+       * FLAVOR → フレーバー
+       * STAFF   → 担当者
+       *
+       * 現在使用中の62mm黒赤2色ロールなので
+       * RollW62RB を指定
+       */
 
-</script>
+      const smoothPrintUrl =
+        "brotherwebprint://print"
+        + "?filename="
+        + encodeURIComponent("gelato-label.lbx")
+        + "&size="
+        + encodeURIComponent("RollW62RB")
+        + "&copies="
+        + encodeURIComponent(copies)
+        + "&text_FLAVOR="
+        + encodeURIComponent(flavor)
+        + "&text_STAFF="
+        + encodeURIComponent(staff);
+
+
+      message.textContent =
+        "Smooth Printを起動します...";
+
+
+      /*
+       * Smooth Printを起動
+       */
+      window.location.href =
+        smoothPrintUrl;
+    }
+
+
+    /*
+     * ページを開いたときに
+     * フレーバー一覧を読み込む
+     */
+    loadFlavors();
+
+  </script>
 
 </body>
 </html>
