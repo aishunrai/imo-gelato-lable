@@ -3,86 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Smooth Print テスト</title>
 
   <style>
     body {
       font-family: sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-    }
-
-    h1 {
-      font-size: 22px;
-      margin-top: 0;
-      margin-bottom: 16px;
-    }
-
-    p {
-      line-height: 1.6;
+      padding: 30px;
     }
 
     button {
       width: 100%;
-      padding: 16px;
+      padding: 18px;
       font-size: 20px;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #message {
-      margin-top: 16px;
-      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>Smooth Print テスト</h2>
 
-  <h1>Smooth Print テスト</h1>
+<p>62mm無定長ロールでテスト印刷します。</p>
 
-  <p>
-    test62.lbx を使用して、QL-820NWBからテスト印刷します_3。
-  </p>
-
-  <button type="button" onclick="printTest()">
-    テスト印刷
-  </button>
-
-  <div id="message"></div>
-
-</div>
+<button type="button" onclick="printTest()">
+  テスト印刷
+</button>
 
 <script>
-
 function printTest() {
-  const message = document.getElementById("message");
 
   const smoothPrintUrl =
     "brotherwebprint://print"
-    + "?filename=" + encodeURIComponent("test62.lbx")
-    + "&size=" + encodeURIComponent("DieCutW62H29")
+    + "?filename=" + encodeURIComponent("test.lbx")
+    + "&size=" + encodeURIComponent("RollW62RB")
     + "&copies=1";
-
-  message.textContent = "Smooth Printを起動します...";
 
   window.location.href = smoothPrintUrl;
 }
-
 </script>
 
 </body>
