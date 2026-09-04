@@ -160,25 +160,26 @@ function printLabel() {
 
 
   if (!flavor) {
+
     message.textContent =
       "フレーバーを選択してください。";
+
     return;
   }
+
 
   if (!staff) {
+
     message.textContent =
       "担当者名を入力してください。";
+
     return;
   }
-
-
-  const templateUrl =
-    "https://aishunrai.github.io/imo-gelato-lable/gelato-label.lbx";
 
 
   const smoothPrintUrl =
     "brotherwebprint://print"
-    + "?filename=" + encodeURIComponent(templateUrl)
+    + "?filename=" + encodeURIComponent("gelato-label.lbx")
     + "&size=" + encodeURIComponent("RollW62RB")
     + "&copies=1"
     + "&text_FLAVOR=" + encodeURIComponent(flavor)
@@ -188,8 +189,10 @@ function printLabel() {
   message.textContent =
     "Smooth Printを起動します...";
 
+
   window.location.href = smoothPrintUrl;
 }
+
 
 loadFlavors();
 
