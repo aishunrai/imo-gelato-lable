@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ジェラートラベル印刷</title>
+  <title>Smooth Print テスト</title>
 
   <style>
     body {
@@ -23,31 +23,13 @@
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       margin-top: 0;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
-    .field {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    select,
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 14px;
-      font-size: 18px;
-      border: 1px solid #cccccc;
-      border-radius: 8px;
-      background: #ffffff;
+    p {
+      line-height: 1.6;
     }
 
     button {
@@ -60,7 +42,7 @@
       cursor: pointer;
     }
 
-    .message {
+    #message {
       margin-top: 16px;
       font-size: 14px;
     }
@@ -71,159 +53,36 @@
 
 <div class="container">
 
-  <h1>ジェラートラベル印刷</h1>
+  <h1>Smooth Print テスト</h1>
 
-  <div class="field">
-    <label for="flavor">フレーバー</label>
+  <p>
+    test.lbx を使用して、QL-820NWBからテスト印刷します。
+  </p>
 
-    <select id="flavor">
-      <option value="">読み込み中...</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label for="staff">担当者</label>
-
-    <input
-      type="text"
-      id="staff"
-      placeholder="氏名を入力"
-      autocomplete="name"
-    >
-  </div>
-
-  <button type="button" onclick="printLabel()">
-    印刷
+  <button type="button" onclick="printTest()">
+    テスト印刷
   </button>
 
-  <div id="message" class="message"></div>
+  <div id="message"></div>
 
 </div>
 
 <script>
 
-  /*
-   * フレーバーマスタを読み込む
-   */
-  async function loadFlavors() {
+function printTest() {
 
-    const select = document.getElementById("flavor");
+  const message = document.getElementById("message");
 
-    try {
+  const smoothPrintUrl =
+    "brotherwebprint://print"
+    + "?filename=" + encodeURIComponent("test.lbx")
+    + "&size=" + encodeURIComponent("RollW62")
+    + "&copies=1";
 
-      const response = await fetch("flavor.json");
+  message.textContent = "Smooth Printを起動します...";
 
-      if (!response.ok) {
-        throw new Error("flavor.json を読み込めませんでした");
-      }
-
-      const flavors = await response.json();
-
-      select.innerHTML = "";
-
-      const defaultOption = document.createElement("option");
-      defaultOption.value = "";
-      defaultOption.textContent = "選択してください";
-
-      select.appendChild(defaultOption);
-
-      flavors.forEach(function(flavor) {
-
-        const option = document.createElement("option");
-
-        option.value = flavor;
-        option.textContent = flavor;
-
-        select.appendChild(option);
-      });
-
-    } catch (error) {
-
-      select.innerHTML =
-        '<option value="">読み込みエラー</option>';
-
-      document.getElementById("message").textContent =
-        "フレーバーマスタの読み込みに失敗しました。";
-
-      console.error(error);
-    }
-  }
-
-
-  /*
-   * Smooth Printで印刷
-   */
-  function printLabel() {
-
-    const flavor =
-      document.getElementById("flavor").value;
-
-    const staff =
-      document.getElementById("staff").value.trim();
-
-    const message =
-      document.getElementById("message");
-
-
-    /*
-     * 入力チェック
-     */
-    if (!flavor) {
-
-      message.textContent =
-        "フレーバーを選択してください。";
-
-      return;
-    }
-
-
-    if (!staff) {
-
-      message.textContent =
-        "担当者名を入力してください。";
-
-      return;
-    }
-
-
-    /*
-     * GitHub Pages上のLBXファイル
-     */
-    const templateUrl = "gelato-label.lbx";
-
-
-    /*
-     * Smooth Print URL
-     *
-     * FLAVOR → P-touch EditorのFLAVOR
-     * STAFF  → P-touch EditorのSTAFF
-     */
-
-    const smoothPrintUrl =
-      "brotherwebprint://print"
-      + "?filename=" + encodeURIComponent(templateUrl)
-      + "&size=" + encodeURIComponent("RollW62")
-      + "&copies=1"
-      + "&text_FLAVOR=" + encodeURIComponent(flavor)
-      + "&text_STAFF=" + encodeURIComponent(staff);
-
-
-    message.textContent =
-      "Smooth Printを起動します...";
-
-
-    /*
-     * Smooth Printを起動
-     */
-    window.location.href = smoothPrintUrl;
-  }
-
-
-  /*
-   * ページ表示時に
-   * フレーバーマスタを読み込む
-   */
-  loadFlavors();
+  window.location.href = smoothPrintUrl;
+}
 
 </script>
 
