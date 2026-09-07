@@ -103,7 +103,7 @@
         id="copies"
         value="1"
         min="1"
-        max="300"
+        max="50"
         step="1"
         inputmode="numeric"
       >
@@ -258,8 +258,8 @@
        * FLAVOR → フレーバー
        * STAFF   → 担当者
        *
-       * 現在使用中の62mm黒赤2色ロールなので
-       * RollW62RB を指定
+       * 現場で使用するラベルは
+       * 62mm × 29mm の定型ラベル
        */
 
       const smoothPrintUrl =
@@ -267,7 +267,7 @@
         + "?filename="
         + encodeURIComponent("gelato-label.lbx")
         + "&size="
-        + encodeURIComponent("RollW62RB")
+        + encodeURIComponent("DieCutW62H29")
         + "&copies="
         + encodeURIComponent(copies)
         + "&text_FLAVOR="
