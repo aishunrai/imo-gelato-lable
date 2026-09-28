@@ -458,76 +458,100 @@
      */
     function preparePrint() {
 
-      const message =
-        document.getElementById("message");
+  const message =
+    document.getElementById("message");
 
-      if (!selectedProduct) {
+  if (!selectedProduct) {
+    message.textContent =
+      "商品を選択してください。";
+    return;
+  }
 
-        message.textContent =
-          "商品を選択してください。";
+  const copies =
+    parseInt(
+      document.getElementById("copies").value,
+      10
+    );
 
-        return;
-      }
+  if (
+    Number.isNaN(copies) ||
+    copies < 1
+  ) {
+    message.textContent =
+      "印刷枚数は1以上で入力してください。";
+    return;
+  }
 
-
-      const copies =
-        parseInt(
-          document.getElementById(
-            "copies"
-          ).value,
-          10
-        );
-
-
-      if (
-        Number.isNaN(copies) ||
-        copies < 1
-      ) {
-
-        message.textContent =
-          "印刷枚数は1以上で入力してください。";
-
-        return;
-      }
+  if (copies > 50) {
+    message.textContent =
+      "印刷枚数は50枚以下で入力してください。";
+    return;
+  }
 
 
-      if (copies > 50) {
+  let expirationDate = "";
 
-        message.textContent =
-          "印刷枚数は50枚以下で入力してください。";
+  if (
+    selectedProduct.expirationType === "auto"
+  ) {
 
-        return;
-      }
+    expirationDate =
+      document.getElementById(
+        "autoExpiration"
+      ).value;
 
+  } else {
 
-      if (
-        selectedProduct.expirationType === "manual"
-      ) {
+    const manualExpiration =
+      document.getElementById(
+        "manualExpiration"
+      ).value;
 
-        const manualExpiration =
-          document.getElementById(
-            "manualExpiration"
-          ).value;
-
-        if (!manualExpiration) {
-
-          message.textContent =
-            "賞味期限を入力してください。";
-
-          return;
-        }
-      }
-
-
-      /*
-       * 実機印刷処理は
-       * 通販用LBX作成後に追加する
-       */
-
+    if (!manualExpiration) {
       message.textContent =
-        "入力内容に問題ありません。";
+        "賞味期限を入力してください。";
+      return;
     }
 
+    expirationDate =
+      formatManualDate(
+        manualExpiration
+      );
+  }
+
+
+  const smoothPrintUrl =
+    "brotherwebprint://print"
+    + "?filename="
+    + encodeURIComponent("online-label.lbx")
+    + "&size="
+    + encodeURIComponent("DieCutW62H29")
+    + "&copies="
+    + encodeURIComponent(copies)
+    + "&text_PRODUCT="
+    + encodeURIComponent(selectedProduct.name)
+    + "&text_EXPIRATION_LABEL="
+    + encodeURIComponent(
+        selectedProduct.expirationLabel
+      )
+    + "&text_EXPIRATION_DATE="
+    + encodeURIComponent(expirationDate)
+    + "&text_STORAGE="
+    + encodeURIComponent(
+        selectedProduct.storage || ""
+      )
+    + "&text_NOTE="
+    + encodeURIComponent(
+        selectedProduct.note || ""
+      );
+
+
+  message.textContent =
+    "Smooth Printを起動します...";
+
+  window.location.href =
+    smoothPrintUrl;
+}
 
     loadProducts();
 
