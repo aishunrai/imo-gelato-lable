@@ -4,7 +4,7 @@
     "expirationType": "auto",
     "expirationDays": 30,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
@@ -12,7 +12,7 @@
     "expirationType": "auto",
     "expirationDays": 30,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
@@ -20,7 +20,7 @@
     "expirationType": "auto",
     "expirationDays": 30,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
@@ -28,7 +28,7 @@
     "expirationType": "auto",
     "expirationDays": 30,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
@@ -36,7 +36,7 @@
     "expirationType": "auto",
     "expirationDays": 30,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
@@ -44,7 +44,7 @@
     "expirationType": "auto",
     "expirationDays": 14,
     "expirationLabel": "賞味期限",
-    "storage": "要冷凍（-18℃以下で保存してください）",
+    "storage": "要冷凍",
     "note": "上記賞味期限は、冷凍（-18℃以下）で保存していただいた場合の期限です。解凍後はなるべくお早目にお召し上がりください。"
   },
   {
