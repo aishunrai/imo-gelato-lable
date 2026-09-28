@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>通販用ラベル印刷</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .preview {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f7f7f7;
+      border-radius: 8px;
+      line-height: 1.7;
+    }
+
+    .preview-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>通販用ラベル印刷</h1>
+
+    <!-- 商品名 -->
+    <div class="field">
+      <label for="product">商品名</label>
+
+      <select id="product">
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+
+    <!-- 自動計算された賞味期限 -->
+    <div class="field" id="autoExpirationField">
+      <label>賞味期限</label>
+
+      <input
+        type="text"
+        id="autoExpiration"
+        readonly
+      >
+    </div>
+
+    <!-- 手入力用賞味期限 -->
+    <div class="field hidden" id="manualExpirationField">
+      <label for="manualExpiration">賞味期限</label>
+
+      <input
+        type="date"
+        id="manualExpiration"
+      >
+    </div>
+
+    <!-- 印刷枚数 -->
+    <div class="field">
+      <label for="copies">印刷枚数</label>
+
+      <input
+        type="number"
+        id="copies"
+        value="1"
+        min="1"
+        max="50"
+        step="1"
+        inputmode="numeric"
+      >
+    </div>
+
+    <!-- 内容確認 -->
+    <div class="preview" id="preview">
+      <div class="preview-title">ラベル内容確認</div>
+
+      <div id="previewProduct">商品を選択してください。</div>
+      <div id="previewExpiration"></div>
+      <div id="previewStorage"></div>
+      <div id="previewNote"></div>
+    </div>
+
+    <div style="height:20px;"></div>
+
+    <!-- 印刷ボタン -->
+    <button
+      type="button"
+      onclick="preparePrint()"
+    >
+      印刷
+    </button>
+
+    <div id="message" class="message"></div>
+
+  </div>
+
+
+  <script>
+
+    let products = [];
+    let selectedProduct = null;
+
+
+    /*
+     * product.json を読み込む
+     */
+    async function loadProducts() {
+
+      const select =
+        document.getElementById("product");
+
+      const message =
+        document.getElementById("message");
+
+      try {
+
+        const response =
+          await fetch("product.json");
+
+        if (!response.ok) {
+          throw new Error(
+            "product.json を読み込めませんでした"
+          );
+        }
+
+        products =
+          await response.json();
+
+        select.innerHTML = "";
+
+        const defaultOption =
+          document.createElement("option");
+
+        defaultOption.value = "";
+        defaultOption.textContent =
+          "選択してください";
+
+        select.appendChild(defaultOption);
+
+
+        products.forEach(function(product, index) {
+
+          const option =
+            document.createElement("option");
+
+          option.value = index;
+          option.textContent = product.name;
+
+          select.appendChild(option);
+
+        });
+
+
+        select.addEventListener(
+          "change",
+          handleProductChange
+        );
+
+
+      } catch (error) {
+
+        select.innerHTML =
+          '<option value="">読み込みエラー</option>';
+
+        message.textContent =
+          "商品マスタの読み込みに失敗しました。";
+
+        console.error(error);
+      }
+    }
+
+
+    /*
+     * 商品変更時
+     */
+    function handleProductChange() {
+
+      const select =
+        document.getElementById("product");
+
+      const index =
+        select.value;
+
+      if (index === "") {
+
+        selectedProduct = null;
+
+        document.getElementById(
+          "previewProduct"
+        ).textContent =
+          "商品を選択してください。";
+
+        document.getElementById(
+          "previewExpiration"
+        ).textContent = "";
+
+        document.getElementById(
+          "previewStorage"
+        ).textContent = "";
+
+        document.getElementById(
+          "previewNote"
+        ).textContent = "";
+
+        return;
+      }
+
+
+      selectedProduct =
+        products[Number(index)];
+
+
+      /*
+       * 賞味期限の表示切替
+       */
+      if (
+        selectedProduct.expirationType === "auto"
+      ) {
+
+        document.getElementById(
+          "autoExpirationField"
+        ).classList.remove("hidden");
+
+        document.getElementById(
+          "manualExpirationField"
+        ).classList.add("hidden");
+
+
+        const expirationDate =
+          calculateExpirationDate(
+            selectedProduct.expirationDays
+          );
+
+        document.getElementById(
+          "autoExpiration"
+        ).value =
+          expirationDate.display;
+
+      } else {
+
+        document.getElementById(
+          "autoExpirationField"
+        ).classList.add("hidden");
+
+        document.getElementById(
+          "manualExpirationField"
+        ).classList.remove("hidden");
+
+      }
+
+
+      updatePreview();
+    }
+
+
+    /*
+     * 今日 + 指定日数
+     */
+    function calculateExpirationDate(days) {
+
+      const date =
+        new Date();
+
+      date.setDate(
+        date.getDate() + days
+      );
+
+
+      const year =
+        date.getFullYear();
+
+      const month =
+        date.getMonth() + 1;
+
+      const day =
+        date.getDate();
+
+
+      return {
+        date: date,
+        display:
+          year + "年" +
+          month + "月" +
+          day + "日"
+      };
+    }
+
+
+    /*
+     * 手入力賞味期限を表示用に変換
+     */
+    function formatManualDate(value) {
+
+      if (!value) {
+        return "";
+      }
+
+      const parts =
+        value.split("-");
+
+      return (
+        Number(parts[0]) + "年" +
+        Number(parts[1]) + "月" +
+        Number(parts[2]) + "日"
+      );
+    }
+
+
+    /*
+     * プレビュー更新
+     */
+    function updatePreview() {
+
+      if (!selectedProduct) {
+        return;
+      }
+
+
+      document.getElementById(
+        "previewProduct"
+      ).textContent =
+        selectedProduct.name;
+
+
+      let expirationText = "";
+
+
+      if (
+        selectedProduct.expirationType === "auto"
+      ) {
+
+        expirationText =
+          document.getElementById(
+            "autoExpiration"
+          ).value;
+
+      } else {
+
+        expirationText =
+          formatManualDate(
+            document.getElementById(
+              "manualExpiration"
+            ).value
+          );
+      }
+
+
+      document.getElementById(
+        "previewExpiration"
+      ).textContent =
+        expirationText
+          ? selectedProduct.expirationLabel +
+            "：" +
+            expirationText
+          : "";
+
+
+      document.getElementById(
+        "previewStorage"
+      ).textContent =
+        selectedProduct.storage || "";
+
+
+      document.getElementById(
+        "previewNote"
+      ).textContent =
+        selectedProduct.note || "";
+    }
+
+
+    /*
+     * 手入力賞味期限変更時
+     */
+    document.addEventListener(
+      "DOMContentLoaded",
+      function() {
+
+        document.getElementById(
+          "manualExpiration"
+        ).addEventListener(
+          "change",
+          updatePreview
+        );
+
+      }
+    );
+
+
+    /*
+     * 印刷前チェック
+     *
+     * 現時点では実機印刷処理は未実装
+     */
+    function preparePrint() {
+
+      const message =
+        document.getElementById("message");
+
+      if (!selectedProduct) {
+
+        message.textContent =
+          "商品を選択してください。";
+
+        return;
+      }
+
+
+      const copies =
+        parseInt(
+          document.getElementById(
+            "copies"
+          ).value,
+          10
+        );
+
+
+      if (
+        Number.isNaN(copies) ||
+        copies < 1
+      ) {
+
+        message.textContent =
+          "印刷枚数は1以上で入力してください。";
+
+        return;
+      }
+
+
+      if (copies > 50) {
+
+        message.textContent =
+          "印刷枚数は50枚以下で入力してください。";
+
+        return;
+      }
+
+
+      if (
+        selectedProduct.expirationType === "manual"
+      ) {
+
+        const manualExpiration =
+          document.getElementById(
+            "manualExpiration"
+          ).value;
+
+        if (!manualExpiration) {
+
+          message.textContent =
+            "賞味期限を入力してください。";
+
+          return;
+        }
+      }
+
+
+      /*
+       * 実機印刷処理は
+       * 通販用LBX作成後に追加する
+       */
+
+      message.textContent =
+        "入力内容に問題ありません。";
+    }
+
+
+    loadProducts();
+
+  </script>
+
+</body>
+</html>
