@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>餅ラベル印刷</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      font-size: 18px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 16px;
+      font-size: 14px;
+    }
+  
+    .preview {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f7f7f7;
+      border-radius: 8px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .preview-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .help {
+      margin-top: 20px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>餅ラベル印刷</h1>
+
+    <div class="field">
+      <label for="mochi">餅種類</label>
+      <select id="mochi" required>
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="period">製造時間帯</label>
+      <select id="period" required>
+        <option value="">選択してください</option>
+        <option value="AM">午前（AM）</option>
+        <option value="PM">午後（PM）</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="copies">印刷枚数</label>
+      <input type="number" id="copies" value="1" min="1" max="50" step="1" inputmode="numeric" required>
+    </div>
+
+    <div class="preview" aria-live="polite">
+      <div class="preview-title">ラベル内容確認</div>
+      <div id="previewMochi">餅種類を選択してください。</div>
+      <div id="previewDate"></div>
+      <div id="previewPeriod"></div>
+    </div>
+
+    <button type="button" id="printButton">印刷</button>
+    <div id="message" class="message" role="status"></div>
+
+    <div class="help">
+      製造日は印刷時点の日付です。製造時間帯は実際に製造した時間帯を選択してください。<br>
+      初回は<a href="mochi-label.lbx" download>餅ラベルファイルをダウンロード</a>して、
+      端末のSmooth Printへ登録してください。
+    </div>
+  </div>
+
+  <script>
+    let mochiTypes = [];
+
+    // mochi.json に種類を追加・削除すると選択肢に反映されます。
+    async function loadMochiTypes() {
+      const select = document.getElementById("mochi");
+      const message = document.getElementById("message");
+
+      try {
+        const response = await fetch("mochi.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("mochi.json を読み込めませんでした");
+        }
+
+        const values = await response.json();
+        if (
+          !Array.isArray(values) ||
+          values.length === 0 ||
+          values.some(value => typeof value !== "string" || !value.trim())
+        ) {
+          throw new Error("mochi.json の形式が正しくありません");
+        }
+
+        mochiTypes = values;
+        select.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "選択してください";
+        select.appendChild(defaultOption);
+
+        mochiTypes.forEach(function(name) {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        mochiTypes = [];
+        select.innerHTML = '<option value="">読み込みエラー</option>';
+        message.textContent = "餅種類一覧の読み込みに失敗しました。ページを再読み込みしてください。";
+        console.error(error);
+      }
+
+      updatePreview();
+    }
+
+    function formatManufacturedDate(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "/" + month + "/" + day;
+    }
+
+    function updatePreview(manufacturedDate = formatManufacturedDate()) {
+      const mochi = document.getElementById("mochi").value;
+      const period = document.getElementById("period").value;
+
+      document.getElementById("previewMochi").textContent =
+        mochi || "餅種類を選択してください。";
+      document.getElementById("previewDate").textContent =
+        "製造日：" + manufacturedDate;
+      document.getElementById("previewPeriod").textContent =
+        period ? "製造時間帯：" + period : "製造時間帯を選択してください。";
+    }
+
+    function printLabel() {
+      const mochi = document.getElementById("mochi").value;
+      const period = document.getElementById("period").value;
+      const copies = Number(document.getElementById("copies").value);
+      const message = document.getElementById("message");
+
+      if (!mochi || !mochiTypes.includes(mochi)) {
+        message.textContent = "餅種類を選択してください。";
+        return;
+      }
+
+      if (period !== "AM" && period !== "PM") {
+        message.textContent = "製造時間帯（午前・午後）を選択してください。";
+        return;
+      }
+
+      if (!Number.isInteger(copies) || copies < 1) {
+        message.textContent = "印刷枚数は1以上の整数で入力してください。";
+        return;
+      }
+
+      if (copies > 50) {
+        message.textContent = "印刷枚数は50枚以下で入力してください。";
+        return;
+      }
+
+      // ページ表示時ではなく、印刷操作時の日付を使用します。
+      const manufacturedDate = formatManufacturedDate();
+      updatePreview(manufacturedDate);
+
+      const smoothPrintUrl =
+        "brotherwebprint://print"
+        + "?filename=" + encodeURIComponent("mochi-label.lbx")
+        + "&size=" + encodeURIComponent("DieCutW62H29")
+        + "&copies=" + encodeURIComponent(copies)
+        + "&text_MOCHI=" + encodeURIComponent(mochi)
+        + "&text_MANUFACTURED_DATE=" + encodeURIComponent(manufacturedDate)
+        + "&text_PERIOD=" + encodeURIComponent(period);
+
+      message.textContent = "Smooth Printを起動します...";
+      window.location.href = smoothPrintUrl;
+    }
+
+    document.getElementById("mochi").addEventListener("change", function() {
+      updatePreview();
+    });
+    document.getElementById("period").addEventListener("change", function() {
+      updatePreview();
+    });
+    document.getElementById("printButton").addEventListener("click", printLabel);
+
+    // 日付をまたいで開いたままの場合や、別アプリから戻った場合も更新します。
+    window.addEventListener("pageshow", function() {
+      updatePreview();
+    });
+    document.addEventListener("visibilitychange", function() {
+      if (!document.hidden) updatePreview();
+    });
+    setInterval(function() {
+      updatePreview();
+    }, 60000);
+
+    loadMochiTypes();
+  </script>
+</body>
+</html>
