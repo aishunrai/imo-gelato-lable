@@ -157,7 +157,7 @@
       try {
 
         const response =
-          await fetch("flavor.json");
+          await fetch("flavor.json", { cache: "no-store" });
 
         if (!response.ok) {
           throw new Error(
